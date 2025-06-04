@@ -101,7 +101,7 @@
           video.height = node.height;
           video.controls = node.controls;
           video.autoplay = node.autoplay;
-          if (node.autoplay) video.muted = true; // Autoplay üçün vacibdir
+          if (node.autoplay) video.muted = true;
           document.getElementById("videos").appendChild(video);
         } else if (node.type === "Background") {
           document.body.style.backgroundColor = node.color;
@@ -109,7 +109,7 @@
       }
 
     } catch (err) {
-      alert("Xəta baş verdi: " + err);
+      console.error("Xəta baş verdi:", err); // ALERT YOXDUR
     }
   }
 
