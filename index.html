@@ -1,291 +1,117 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-<meta charset="UTF-8" />
-<title>ELS Interpreter - Yeni funksiyalar</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    margin: 0;
-  }
-  #output {
-    white-space: pre-wrap;
-    margin-bottom: 20px;
-  }
-  #buttons button {
-    margin-right: 10px;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  video, img, audio, input {
-    display: block;
-    margin-top: 15px;
-    margin-bottom: 20px;
-  }
-  #images img {
-    cursor: pointer;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>ELS Interpreter</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    #output {
+      margin: 20px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>ELS Interpreter - Yeni funksiyalar</h1>
-
-<pre id="output"></pre>
-<div id="buttons"></div>
-<div id="videos"></div>
-<div id="audios"></div>
-<div id="images"></div>
-<div id="textboxes"></div>
+<div id="output"></div>
 
 <script>
-const outputEl = document.getElementById("output");
-const buttonsEl = document.getElementById("buttons");
-const videosEl = document.getElementById("videos");
-const audiosEl = document.getElementById("audios");
-const imagesEl = document.getElementById("images");
-const textboxesEl = document.getElementById("textboxes");
-
-function printOutput(text) {
-  outputEl.textContent += text + "\n";
+function printOutput(html) {
+  const output = document.getElementById("output");
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+  output.appendChild(wrapper);
 }
 
-function tokenize(input) {
-  return input
-    .replace(/\n/g, " ")
-    .match(/"(.*?)"|button|video|let|if|else|print|bgcolor|bgimage|audio|image|textbox|\d+|true|false|[a-zA-Z_]\w*|==|!=|<=|>=|[+\-*/=<>{}();,]/g);
+function tokenize(code) {
+  return code
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith("//"));
 }
 
 function parse(tokens) {
-  let i = 0;
-  function walk() {
-    let token = tokens[i];
-    
-    if (token === "print") {
-      i++;
-      if (tokens[i++] !== "(") throw "print səhv: '(' gözlənilir";
-      const value = tokens[i++];
-      if (tokens[i++] !== ")") throw "print səhv: ')' gözlənilir";
-      if (tokens[i++] !== ";") throw "print səhv: ';' gözlənilir";
-      return { type: "Print", value: value.replace(/^"|"$/g, "") };
-    }
-    
-    if (token === "let") {
-      i++;
-      const name = tokens[i++];
-      if (tokens[i++] !== "=") throw "'=' gözlənilir";
-      const value = tokens[i++];
-      if (tokens[i++] !== ";") throw "';' gözlənilir";
-      return { type: "Let", name, value: parseInt(value) };
-    }
-    
-    if (token === "if") {
-      i++;
-      if (tokens[i++] !== "(") throw "'(' gözlənilir";
-      const varName = tokens[i++];
-      const operator = tokens[i++];
-      const right = tokens[i++];
-      if (tokens[i++] !== ")") throw "')' gözlənilir";
-      if (tokens[i++] !== "{") throw "'{' gözlənilir";
-      const body = [];
-      while (tokens[i] !== "}") body.push(walk());
-      i++;
-      return { type: "If", varName, operator, right: parseInt(right), body };
-    }
-    
-    if (token === "button") {
-      i++;
-      const name = tokens[i++];
-      if (tokens[i++] !== ",") throw "button sintaksisi səhv: ',' gözlənilir";
-      const url = tokens[i++];
-      if (tokens[i++] !== ",") throw "button sintaksisi səhv: ',' gözlənilir";
-      const color = tokens[i++];
-      if (tokens[i++] !== ",") throw "button sintaksisi səhv: ',' gözlənilir";
-      const width = tokens[i++];
-      if (tokens[i++] !== ",") throw "button sintaksisi səhv: ',' gözlənilir";
-      const height = tokens[i++];
-      if (tokens[i++] !== ";") throw "button sintaksisi səhv: ';' gözlənilir";
-      
-      return {
-        type: "Button",
-        name: name.replace(/^"|"$/g, ""),
-        url: url.replace(/^"|"$/g, ""),
-        color: color.replace(/^"|"$/g, ""),
-        width: parseInt(width),
-        height: parseInt(height)
-      };
-    }
-    
-    if (token === "video") {
-      i++;
-      const src = tokens[i++];
-      if (tokens[i++] !== ",") throw "video sintaksisi səhv: ',' gözlənilir";
-      const width = tokens[i++];
-      if (tokens[i++] !== ",") throw "video sintaksisi səhv: ',' gözlənilir";
-      const height = tokens[i++];
-      if (tokens[i++] !== ",") throw "video sintaksisi səhv: ',' gözlənilir";
-      const controls = tokens[i++];
-      if (tokens[i++] !== ",") throw "video sintaksisi səhv: ',' gözlənilir";
-      const autoplay = tokens[i++];
-      if (tokens[i++] !== ";") throw "video sintaksisi səhv: ';' gözlənilir";
-      
-      return {
-        type: "Video",
-        src: src.replace(/^"|"$/g, ""),
-        width: parseInt(width),
-        height: parseInt(height),
-        controls: controls === "true",
-        autoplay: autoplay === "true"
-      };
-    }
-    
-    if (token === "bgcolor") {
-      i++;
-      const color = tokens[i++];
-      if (tokens[i++] !== ";") throw "bgcolor səhv: ';' gözlənilir";
-      return { type: "BgColor", color: color.replace(/^"|"$/g, "") };
-    }
-    
-    if (token === "bgimage") {
-      i++;
-      const img = tokens[i++];
-      if (tokens[i++] !== ";") throw "bgimage səhv: ';' gözlənilir";
-      return { type: "BgImage", img: img.replace(/^"|"$/g, "") };
-    }
-    
-    if (token === "audio") {
-      i++;
-      const src = tokens[i++];
-      if (tokens[i++] !== ",") throw "audio sintaksisi səhv: ',' gözlənilir";
-      const autoplay = tokens[i++];
-      if (tokens[i++] !== ";") throw "audio sintaksisi səhv: ';' gözlənilir";
-      return { type: "Audio", src: src.replace(/^"|"$/g, ""), autoplay: autoplay === "true" };
-    }
-    
-    if (token === "image") {
-      i++;
-      const src = tokens[i++];
-      if (tokens[i++] !== ",") throw "image sintaksisi səhv: ',' gözlənilir";
-      const width = tokens[i++];
-      if (tokens[i++] !== ",") throw "image sintaksisi səhv: ',' gözlənilir";
-      const height = tokens[i++];
-      let url = null;
-      if (tokens[i] === ",") {
-        i++;
-        url = tokens[i++];
-      }
-      if (tokens[i++] !== ";") throw "image sintaksisi səhv: ';' gözlənilir";
-      return { type: "Image", src: src.replace(/^"|"$/g, ""), width: parseInt(width), height: parseInt(height), url: url ? url.replace(/^"|"$/g, "") : null };
-    }
-    
-    if (token === "textbox") {
-      i++;
-      const id = tokens[i++];
-      if (tokens[i++] !== ",") throw "textbox sintaksisi səhv: ',' gözlənilir";
-      const width = tokens[i++];
-      if (tokens[i++] !== ",") throw "textbox sintaksisi səhv: ',' gözlənilir";
-      const height = tokens[i++];
-      if (tokens[i++] !== ";") throw "textbox sintaksisi səhv: ';' gözlənilir";
-      return { type: "Textbox", id: id.replace(/^"|"$/g, ""), width: parseInt(width), height: parseInt(height) };
-    }
-    
-    throw "Naməlum token: " + token;
-  }
-  
-  const ast = [];
-  while (i < tokens.length) ast.push(walk());
-  return ast;
+  return tokens.map(token => {
+    const match = token.match(/^(\w+)\s+"([^"]+)"(?:,\s*("[^"]+"|\d+)(?:,\s*("[^"]+"|\d+))?(?:,\s*"([^"]+)")?)?;?$/);
+    if (!match) throw new Error("Sintaksis xətası: " + token);
+    const [, type, val1, val2, val3, val4] = match;
+    return { type, args: [val1, val2, val3, val4].filter(Boolean).map(arg => {
+      if (arg.startsWith('"') && arg.endsWith('"')) return arg.slice(1, -1);
+      if (!isNaN(arg)) return parseInt(arg);
+      return arg;
+    }) };
+  });
 }
 
-function run(ast, env = {}) {
+function run(ast) {
   for (const node of ast) {
-    if (node.type === "Print") {
-      printOutput(node.value);
-    } else if (node.type === "Let") {
-      env[node.name] = node.value;
-    } else if (node.type === "If") {
-      const left = env[node.varName];
-      const right = node.right;
-      let ok = false;
-      if (node.operator === ">") ok = left > right;
-      if (node.operator === "<") ok = left < right;
-      if (node.operator === "==") ok = left == right;
-      if (ok) run(node.body, env);
-    } else if (node.type === "Button") {
-      const btn = document.createElement("button");
-      btn.textContent = node.name;
-      btn.style.backgroundColor = node.color;
-      btn.style.width = node.width + "px";
-      btn.style.height = node.height + "px";
-      btn.style.color = "#fff";
-      btn.style.border = "none";
-      btn.style.cursor = "pointer";
-      btn.onclick = () => window.open(node.url, "_blank");
-      buttonsEl.appendChild(btn);
-      buttonsEl.appendChild(document.createTextNode(" "));
-    } else if (node.type === "Video") {
-      const video = document.createElement("video");
-      video.src = node.src;
-      video.width = node.width;
-      video.height = node.height;
-      if (node.controls) video.controls = true;
-      if (node.autoplay) {
-        video.autoplay = true;
-        video.muted = true;
-      }
-      videosEl.appendChild(video);
-    } else if (node.type === "BgColor") {
-      document.body.style.backgroundColor = node.color;
-    } else if (node.type === "BgImage") {
-      document.body.style.backgroundImage = `url(${node.img})`;
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundRepeat = "no-repeat";
-      document.body.style.backgroundPosition = "center";
-    } else if (node.type === "Audio") {
-      const audio = document.createElement("audio");
-      audio.src = node.src;
-      if (node.autoplay) {
-        audio.autoplay = true;
-        audio.muted = true;
-      }
-      audio.controls = true;
-      audiosEl.appendChild(audio);
-    } else if (node.type === "Image") {
-      const img = document.createElement("img");
-      img.src = node.src;
-      img.width = node.width;
-      img.height = node.height;
-      if (node.url) {
-        img.style.cursor = "pointer";
-        img.onclick = () => window.open(node.url, "_blank");
-      }
-      imagesEl.appendChild(img);
-    } else if (node.type === "Textbox") {
-      const input = document.createElement("input");
-      input.type = "text";
-      input.id = node.id;
-      input.style.width = node.width + "px";
-      input.style.height = node.height + "px";
-      textboxesEl.appendChild(input);
+    switch (node.type) {
+      case "bgcolor":
+        document.body.style.backgroundColor = node.args[0];
+        break;
+      case "bgimage":
+        document.body.style.backgroundImage = `url('${node.args[0]}')`;
+        break;
+      case "audio":
+        const audio = document.createElement("audio");
+        audio.src = node.args[0];
+        if (node.args[1] === "true") audio.autoplay = true;
+        audio.controls = true;
+        printOutput(audio.outerHTML);
+        break;
+      case "image":
+        const img = document.createElement("img");
+        img.src = node.args[0];
+        img.width = parseInt(node.args[1]);
+        img.height = parseInt(node.args[2]);
+        if (node.args[3]) {
+          const link = document.createElement("a");
+          link.href = node.args[3];
+          link.target = "_blank";
+          link.appendChild(img);
+          printOutput(link.outerHTML);
+        } else {
+          printOutput(img.outerHTML);
+        }
+        break;
+      case "textbox":
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = node.args[0];
+        input.style.width = `${node.args[1]}px`;
+        input.style.height = `${node.args[2]}px`;
+        printOutput(input.outerHTML);
+        break;
+      case "button":
+        const btn = document.createElement("button");
+        btn.textContent = node.args[0];
+        btn.style.backgroundColor = node.args[2];
+        btn.style.width = `${node.args[3]}px`;
+        btn.style.height = `${node.args[4]}px`;
+        btn.onclick = () => window.open(node.args[1], "_blank");
+        printOutput(btn.outerHTML);
+        break;
+      default:
+        throw new Error("Naməlum əmr: " + node.type);
     }
   }
 }
 
+// Faylı yükləyir və interpreter-i işə salır
 fetch("main.els")
-  .then(res => {
-    if (!res.ok) throw new Error("Fayl tapılmadı");
-    return res.text();
-  })
+  .then(res => res.text())
   .then(code => {
     const tokens = tokenize(code);
     const ast = parse(tokens);
     run(ast);
   })
-  .catch(err => {
-    printOutput("Xəta: " + err.message);
-  });
+  .catch(err => printOutput("Xəta: " + err.message));
 </script>
 
 </body>
