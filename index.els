@@ -1,5 +1,10 @@
-background "#F5F5F5";
-print "Salam!";
-button "exemplesoft" "https://exemplesoft.pages.dev" "#0000FF" 160 50;
-background "#FFFFFF";
-video "sample.mp4" 320 240 true false;
+bgcolor "#aabbcc";
+bgimage "https://picsum.photos/800/600";
+
+audio "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", true;
+
+image "https://picsum.photos/200/150", 200, 150, "https://example.com";
+
+textbox "myinput", 300, 30;
+
+button "Saytı Aç", "https://openai.com", "#007BFF", 120, 40;
