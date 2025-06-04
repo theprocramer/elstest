@@ -273,7 +273,7 @@ function run(ast, env = {}) {
   }
 }
 
-fetch("main.els")
+fetch("index.els")
   .then(res => {
     if (!res.ok) throw new Error("Fayl tapılmadı");
     return res.text();
