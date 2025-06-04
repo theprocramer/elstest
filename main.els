@@ -1,3 +1,5 @@
 background "#F5F5F5";
-button "exemplesoft" "https://exemplesoft.pages.dev" "#FFFFFF" 160 50;
+print "Salam!";
+button "exemplesoft" "https://exemplesoft.pages.dev" "#0000FF" 160 50;
+background "#FFFFFF";
 video "sample.mp4" 320 240 true false;
