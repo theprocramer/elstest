@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ELS Language</title>
+</head>
+<body>
+  <script>
+    async function runELS(filename = "main.els") {
+      const code = await fetch(filename).then(r => r.text());
+      const tokens = code.match(/"(?:\\.|[^"\\])*"|[^\s]+/g) || [];
+      let i = 0;
+
+      function walk() {
+        const token = tokens[i++];
+
+        if (token === "print") {
+          const msg = tokens[i++];
+          if (tokens[i++] !== ";") throw new Error("print üçün ';' gözlənilir");
+          return { type: "Print", value: msg.replace(/^"|"$/g, "") };
+        }
+
+        if (token === "button") {
+          const text = tokens[i++];
+          const link = tokens[i++];
+          const color = tokens[i++];
+          const width = parseInt(tokens[i++]);
+          const height = parseInt(tokens[i++]);
+          if (tokens[i++] !== ";") throw new Error("button üçün ';' gözlənilir");
+          return {
+            type: "Button",
+            text: text.replace(/^"|"$/g, ""),
+            link: link.replace(/^"|"$/g, ""),
+            color: color.replace(/^"|"$/g, ""),
+            width,
+            height
+          };
+        }
+
+        if (token === "video") {
+          const src = tokens[i++];
+          const width = parseInt(tokens[i++]);
+          const height = parseInt(tokens[i++]);
+          const controls = tokens[i++] === "true";
+          const autoplay = tokens[i++] === "true";
+          if (tokens[i++] !== ";") throw new Error("video üçün ';' gözlənilir");
+          return {
+            type: "Video",
+            src: src.replace(/^"|"$/g, ""),
+            width,
+            height,
+            controls,
+            autoplay
+          };
+        }
+
+        if (token === "bgcolor") {
+          const color = tokens[i++];
+          if (tokens[i++] !== ";") throw new Error("bgcolor üçün ';' gözlənilir");
+          return {
+            type: "BgColor",
+            color: color.replace(/^"|"$/g, "")
+          };
+        }
+
+        if (token === "bgimage") {
+          const url = tokens[i++];
+          if (tokens[i++] !== ";") throw new Error("bgimage üçün ';' gözlənilir");
+          return {
+            type: "BgImage",
+            url: url.replace(/^"|"$/g, "")
+          };
+        }
+
+        throw new Error("Naməlum sintaksis: " + token);
+      }
+
+      function parse() {
+        const nodes = [];
+        while (i < tokens.length) {
+          nodes.push(walk());
+        }
+        return nodes;
+      }
+
+      const ast = parse();
+
+      for (const node of ast) {
+        if (node.type === "Print") {
+          const p = document.createElement("p");
+          p.textContent = node.value;
+          document.body.appendChild(p);
+        } else if (node.type === "Button") {
+          const btn = document.createElement("button");
+          btn.textContent = node.text;
+          btn.style.backgroundColor = node.color;
+          btn.style.width = node.width + "px";
+          btn.style.height = node.height + "px";
+          btn.onclick = () => window.open(node.link, "_blank");
+          document.body.appendChild(btn);
+        } else if (node.type === "Video") {
+          const video = document.createElement("video");
+          video.src = node.src;
+          video.width = node.width;
+          video.height = node.height;
+          video.controls = node.controls;
+          video.autoplay = node.autoplay;
+          document.body.appendChild(video);
+        } else if (node.type === "BgColor") {
+          document.body.style.backgroundColor = node.color;
+        } else if (node.type === "BgImage") {
+          document.body.style.backgroundImage = `url('${node.url}')`;
+          document.body.style.backgroundSize = "cover";
+          document.body.style.backgroundPosition = "center";
+          document.body.style.backgroundRepeat = "no-repeat";
+        }
+      }
+    }
+
+    runELS();
+  </script>
+</body>
+</html>
