@@ -1,3 +1,4 @@
-bg color "#F5F5F5"; 
+bgcolor "#F5F5F5";
 
-button "exemplesoft", "https://exemplesoft.pages.dev, "#FFFFFF", "120", "70";
+button "exemplesoft", "https://exemplesoft.pages.dev", "#FFFFFF", "120", "70";
+
